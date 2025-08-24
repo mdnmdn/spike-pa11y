@@ -41,6 +41,7 @@ type Analysis struct {
 	Status       AnalysisStatus `json:"status"`
 	Result       []Issue        `json:"result,omitempty"`
 	ErrorMessage string         `json:"errorMessage,omitempty"`
+	SizeBytes    int64          `json:"sizeBytes,omitempty"`
 	CreatedAt    time.Time      `json:"createdAt"`
 	UpdatedAt    time.Time      `json:"updatedAt"`
 	StartedAt    time.Time      `json:"startedAt,omitempty"`
@@ -184,5 +185,15 @@ func (s *Service) UpdateResult(id string, status AnalysisStatus, result []Issue,
 		}
 
 		analysis.UpdatedAt = now
+	}
+}
+
+// UpdateSize updates the fetched size of the target URL in bytes.
+func (s *Service) UpdateSize(id string, size int64) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if analysis, ok := s.analyses[id]; ok {
+		analysis.SizeBytes = size
+		analysis.UpdatedAt = time.Now()
 	}
 }

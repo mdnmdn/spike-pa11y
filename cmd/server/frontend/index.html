@@ -47,6 +47,7 @@
                         <th class="px-4 py-2">URL</th>
                         <th class="px-4 py-2">Status</th>
                         <th class="px-4 py-2">Duration</th>
+                        <th class="px-4 py-2">Size</th>
                         <th class="px-4 py-2">Created At</th>
                         <th class="px-4 py-2">Actions</th>
                         <th class="px-4 py-2">Reports</th>
@@ -62,6 +63,7 @@
                             </span>
                         </td>
                         <td class="px-4 py-2">{{ item.durationMs ? formatDuration(item.durationMs) : '-' }}</td>
+                        <td class="px-4 py-2">{{ item.sizeBytes ? formatBytes(item.sizeBytes) : '-' }}</td>
                         <td class="px-4 py-2">{{ new Date(item.createdAt).toLocaleString() }}</td>
                         <td class="px-4 py-2">
                             <button @click="getQueueItem(item.id)" class="bg-blue-500 text-white p-1 rounded-md hover:bg-blue-600">View</button>
@@ -100,6 +102,11 @@
 
             <!-- Results Tab -->
             <div v-show="activeTab === 'results'">
+                <!-- Error message display when failed -->
+                <div v-if="result.status === 'failed' && result.errorMessage" class="mb-4">
+                    <h3 class="text-xl font-bold mb-2 text-red-700">Error</h3>
+                    <pre class="bg-red-50 border border-red-200 text-red-800 p-3 rounded overflow-x-auto whitespace-pre-wrap">{{ result.errorMessage }}</pre>
+                </div>
                 <!-- Metadata -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div><span class="font-semibold">ID:</span> {{ result.id }}</div>
@@ -107,6 +114,7 @@
                     <div><span class="font-semibold">Runner:</span> {{ result.runner || 'htmlcs' }}</div>
                     <div><span class="font-semibold">Status:</span> <span :class="statusBadgeClass(result.status)" class="px-2 py-1 rounded text-xs font-semibold">{{ result.status }}</span></div>
                     <div><span class="font-semibold">Duration:</span> {{ result.durationMs ? formatDuration(result.durationMs) : '-' }}</div>
+                    <div><span class="font-semibold">Size:</span> {{ result.sizeBytes ? formatBytes(result.sizeBytes) : '-' }}</div>
                     <div><span class="font-semibold">Created At:</span> {{ result.createdAt ? new Date(result.createdAt).toLocaleString() : '-' }}</div>
                     <div><span class="font-semibold">Updated At:</span> {{ result.updatedAt ? new Date(result.updatedAt).toLocaleString() : '-' }}</div>
                 </div>
@@ -254,6 +262,20 @@
                         clearInterval(this.pollTimer);
                         this.pollTimer = null;
                     }
+                },
+                formatBytes(bytes) {
+                    if (bytes == null) return '-';
+                    const thresh = 1024;
+                    if (bytes < thresh) return bytes + ' B';
+                    const units = ['KB','MB','GB','TB','PB','EB','ZB','YB'];
+                    let u = -1;
+                    let val = bytes;
+                    do {
+                        val /= thresh;
+                        ++u;
+                    } while (val >= thresh && u < units.length - 1);
+                    const fixed = val >= 10 ? val.toFixed(0) : val.toFixed(1);
+                    return fixed + units[u].toLowerCase();
                 },
                 formatDuration(ms) {
                     // Simple human-readable formatter
