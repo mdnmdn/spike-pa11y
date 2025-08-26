@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"pa11y-go-wrapper/internal/analysis"
+	"pa11y-go-wrapper/internal/discovery"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -22,7 +23,10 @@ func TestCompletedHTML(t *testing.T) {
 	service.UpdateResult(a.ID, analysis.StatusCompleted, nil, "")
 
 	// Create a new router
-	router := NewRouter(service, frontendAssets)
+	discoveryService, err := discovery.NewService()
+	assert.NoError(t, err)
+	handlers := NewHandlers(service, discoveryService)
+	router := NewRouter(handlers, frontendAssets)
 
 	// Create a new request to the /completed/html endpoint
 	req, _ := http.NewRequest("GET", "/api/completed/html", nil)
@@ -41,7 +45,10 @@ func TestCompletedPDF(t *testing.T) {
 	service.UpdateResult(a.ID, analysis.StatusCompleted, nil, "")
 
 	// Create a new router
-	router := NewRouter(service, frontendAssets)
+	discoveryService, err := discovery.NewService()
+	assert.NoError(t, err)
+	handlers := NewHandlers(service, discoveryService)
+	router := NewRouter(handlers, frontendAssets)
 
 	// Create a new request to the /completed/pdf endpoint
 	req, _ := http.NewRequest("GET", "/api/completed/pdf", nil)
