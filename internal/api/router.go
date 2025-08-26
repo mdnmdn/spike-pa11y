@@ -4,16 +4,13 @@ import (
 	"embed"
 	"io/fs"
 	"net/http"
-	"pa11y-go-wrapper/internal/analysis"
-	"pa11y-go-wrapper/internal/discovery"
 
 	"github.com/gin-gonic/gin"
 )
 
 // NewRouter creates a new Gin router.
-func NewRouter(analysisService *analysis.Service, discoveryService *discovery.Service, frontendAssets embed.FS) *gin.Engine {
+func NewRouter(h *Handlers, frontendAssets embed.FS) *gin.Engine {
 	r := gin.Default()
-	h := NewHandlers(analysisService, discoveryService)
 
 	api := r.Group("/api")
 	{

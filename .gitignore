@@ -8,6 +8,7 @@
 *.so
 *.dylib
 pa11y-go-wrapper
+pa11y-go-server
 
 # Test binary, built with `go test -c`
 *.test

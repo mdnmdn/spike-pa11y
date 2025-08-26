@@ -21,7 +21,8 @@ func NewHandlers(analysisService *analysis.Service, discoveryService *discovery.
 
 // DiscoverSiteRequest represents the request body for the /discover endpoint.
 type DiscoverSiteRequest struct {
-	URL string `json:"url" binding:"required"`
+	URL          string `json:"url" binding:"required"`
+	SiteCategory string `json:"siteCategory"`
 }
 
 // DiscoverSite handles site discovery.
@@ -32,7 +33,7 @@ func (h *Handlers) DiscoverSite(c *gin.Context) {
 		return
 	}
 
-	results, err := h.discoveryService.Discover(req.URL)
+	results, err := h.discoveryService.Discover(req.URL, req.SiteCategory)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

@@ -153,6 +153,7 @@
                 <h2 class="text-xl sm:text-2xl font-bold mb-4">Site Discovery</h2>
                 <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-4">
                     <input v-model="discoveryUrl" type="text" placeholder="https://example.com" class="flex-grow p-2 border rounded-md text-sm sm:text-base">
+                    <input v-model="siteCategory" type="text" placeholder="e.g., e-commerce, blog" class="flex-grow p-2 border rounded-md text-sm sm:text-base">
                     <button @click="discoverSite" :disabled="discovering" class="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 disabled:opacity-50 text-sm sm:text-base whitespace-nowrap">Explore</button>
                 </div>
 
@@ -316,6 +317,7 @@
                 statusFilter: '',
                 urlFilter: '',
                 discoveryUrl: '',
+                siteCategory: '',
                 discovering: false,
                 discoveryResults: [],
                 discoveryError: '',
@@ -355,7 +357,7 @@
                         const response = await fetch('/api/discover', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ url: normalizedUrl }),
+                            body: JSON.stringify({ url: normalizedUrl, siteCategory: this.siteCategory }),
                         });
                         if (!response.ok) {
                             const errorData = await response.json();

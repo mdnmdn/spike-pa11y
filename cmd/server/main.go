@@ -16,14 +16,18 @@ var frontendAssets embed.FS
 func main() {
 	// Initialize the analysis service
 	analysisService := analysis.NewService(100) // Queue size of 100
-	discoveryService := discovery.NewService()
+	discoveryService, err := discovery.NewService()
+	if err != nil {
+		log.Fatalf("failed to create discovery service: %v", err)
+	}
 
 	// Start the background worker
 	worker := analysis.NewWorker(analysisService)
 	worker.Start()
 
 	// Create and run the Gin server
-	router := api.NewRouter(analysisService, discoveryService, frontendAssets)
+	handlers := api.NewHandlers(analysisService, discoveryService)
+	router := api.NewRouter(handlers, frontendAssets)
 
 	addr := getServerAddr()
 
