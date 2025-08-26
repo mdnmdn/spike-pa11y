@@ -34,7 +34,7 @@ func NewLLMService() (*LLMService, error) {
 // NarrowDownURLs uses the LLM to narrow down a list of URLs to 15.
 func (s *LLMService) NarrowDownURLs(urls []string, siteCategory string) ([]string, error) {
 	prompt := fmt.Sprintf(
-		"From the following list of URLs, select the 15 most relevant URLs for a site with the category '%s'.\n\nURLs:\n%v\n\nReturn a comma-separated list of the 15 selected URLs.",
+		"From the following list of URLs, select the 20 most relevant URLs for a site also exploring different categories '%s'.\n\nURLs:\n%v\n\nReturn a json list of selected URLs.",
 		siteCategory,
 		strings.Join(urls, "\n"),
 	)
@@ -48,13 +48,14 @@ func (s *LLMService) NarrowDownURLs(urls []string, siteCategory string) ([]strin
 				},
 			},
 		},
-		llms.WithMaxTokens(2048),
+		llms.WithMaxTokens(12048), llms.WithModel("gemini-2.5-flash"),
+		llms.WithJSONMode(),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to call LLM: %w", err)
 	}
 
-	return parseCommaSeparated(resp.Choices[0].Content), nil
+	return parseJSONURLs(resp.Choices[0].Content)
 }
 
 // SelectAndCategorizeURLs uses the LLM to select 10 URLs and assign categories.
@@ -79,13 +80,30 @@ func (s *LLMService) SelectAndCategorizeURLs(urls []string, heads map[string]str
 				},
 			},
 		},
-		llms.WithMaxTokens(4096),
+		llms.WithMaxTokens(14096), llms.WithModel("gemini-2.5-flash"),
+		llms.WithJSONMode(),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to call LLM: %w", err)
 	}
 
 	return parseJSONResponse(resp.Choices[0].Content)
+}
+
+func parseJSONURLs(in string) ([]string, error) {
+	// Parse JSON response containing a list of URL strings
+	// The LLM can return a markdown code block, so we need to trim it.
+	in = strings.TrimPrefix(in, "```json")
+	in = strings.TrimSuffix(in, "```")
+	in = strings.TrimSpace(in)
+
+	var urls []string
+	err := json.Unmarshal([]byte(in), &urls)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse JSON response: %w", err)
+	}
+
+	return urls, nil
 }
 
 func parseCommaSeparated(in string) []string {

@@ -390,7 +390,7 @@
                     if (selectedUrls.length === 0) return;
 
                     for (const url of selectedUrls) {
-                        await this.enqueueUrl(url, 'htmlcs');
+                        await this.enqueue(url, 'htmlcs');
                     }
                     this.getQueue();
                 },
