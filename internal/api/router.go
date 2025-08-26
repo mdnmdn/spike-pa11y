@@ -5,14 +5,15 @@ import (
 	"io/fs"
 	"net/http"
 	"pa11y-go-wrapper/internal/analysis"
+	"pa11y-go-wrapper/internal/discovery"
 
 	"github.com/gin-gonic/gin"
 )
 
 // NewRouter creates a new Gin router.
-func NewRouter(service *analysis.Service, frontendAssets embed.FS) *gin.Engine {
+func NewRouter(analysisService *analysis.Service, discoveryService *discovery.Service, frontendAssets embed.FS) *gin.Engine {
 	r := gin.Default()
-	h := NewHandlers(service)
+	h := NewHandlers(analysisService, discoveryService)
 
 	api := r.Group("/api")
 	{
@@ -22,6 +23,7 @@ func NewRouter(service *analysis.Service, frontendAssets embed.FS) *gin.Engine {
 		api.GET("/queue/:id", h.GetQueueItem)
 		api.GET("/completed/html", h.GetCompletedAnalysesHTML)
 		api.GET("/completed/pdf", h.GetCompletedAnalysesPDF)
+		api.POST("/discover", h.DiscoverSite)
 	}
 
 	// Serve the frontend
