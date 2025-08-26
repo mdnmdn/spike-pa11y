@@ -16,24 +16,16 @@ ENV CGO_ENABLED=0
 RUN go build -o /pa11y-go-server cmd/server/main.go
 
 # Stage 2: Create the final image
-FROM node:22-trixie-slim
+FROM timbru31/node-chrome:20-slim
 
-# We don't need the standalone Chromium
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-
-# Install Google Chrome Stable and fonts
-# Note: this installs the necessary libs to make the browser work with Puppeteer.
-RUN apt-get update && \
-    apt-get install ca-certificates chromium chromium-sandbox -y --no-install-recommends && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH="/usr/bin/chromium"
-
+RUN apt-get update && apt-get install -y libglib2.0-dev
 # Install pa11y globally
 RUN npm install -g pa11y
-COPY ./_devops/pa11y.json /pa11y.json
 
+# Ensure pa11y/puppeteer can find Chrome
+ENV CHROME_BIN=/usr/bin/google-chrome \
+    CHROME_PATH=/usr/bin/google-chrome \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome
 
 # Copy the built binary from the builder stage
 COPY --from=builder /pa11y-go-server /pa11y-go-server

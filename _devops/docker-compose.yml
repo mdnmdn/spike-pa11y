@@ -1,0 +1,20 @@
+services:
+  backend:
+    image: "__ECR_REGISTRY_URI__:__IMAGE_TAG__"
+    container_name: "spike-pa11y-backend"
+    restart: unless-stopped
+    networks:
+      - web
+    env_file:
+      - backend.env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.spike-pa11y-backend.rule=Host(`__DOMAIN__`)"
+      - "traefik.http.routers.spike-pa11y-backend.entrypoints=websecure"
+      - "traefik.http.routers.spike-pa11y-backend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.spike-pa11y-backend.loadbalancer.server.port=8080"
+
+networks:
+  web:
+    external: true
+    name: web
