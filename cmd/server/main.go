@@ -7,6 +7,7 @@ import (
 	"os"
 	"pa11y-go-wrapper/internal/analysis"
 	"pa11y-go-wrapper/internal/api"
+	"pa11y-go-wrapper/internal/discovery"
 )
 
 //go:embed frontend
@@ -15,13 +16,14 @@ var frontendAssets embed.FS
 func main() {
 	// Initialize the analysis service
 	analysisService := analysis.NewService(100) // Queue size of 100
+	discoveryService := discovery.NewService()
 
 	// Start the background worker
 	worker := analysis.NewWorker(analysisService)
 	worker.Start()
 
 	// Create and run the Gin server
-	router := api.NewRouter(analysisService, frontendAssets)
+	router := api.NewRouter(analysisService, discoveryService, frontendAssets)
 
 	addr := getServerAddr()
 

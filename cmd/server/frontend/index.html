@@ -12,18 +12,32 @@
     <div id="app" class="container mx-auto p-2 sm:p-4">
         <h1 class="text-2xl sm:text-3xl font-bold mb-4">pa11y-go-wrapper</h1>
 
-        <!-- Direct Analysis -->
-        <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg mb-4">
-            <h2 class="text-xl sm:text-2xl font-bold mb-4">Direct Analysis</h2>
-            <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                <input v-model="directUrl" type="text" placeholder="https://example.com" class="flex-grow p-2 border rounded-md text-sm sm:text-base">
-                <select v-model="runner" class="p-2 border rounded-md text-sm sm:text-base">
-                    <option value="htmlcs">htmlcs</option>
-                    <option value="axe">axe</option>
-                </select>
-                <button @click="analyzeUrl" :disabled="directAnalyzing" class="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 disabled:opacity-50 text-sm sm:text-base whitespace-nowrap">Analyze</button>
-            </div>
+        <!-- Tabs -->
+        <div class="mb-4 border-b border-gray-200">
+            <nav class="flex space-x-4">
+                <button @click="mainTab = 'analysis'" :class="{ 'border-b-2 border-blue-500 text-blue-600': mainTab === 'analysis' }" class="py-2 px-4 text-center font-medium hover:text-blue-500 focus:outline-none">
+                    Analysis
+                </button>
+                <button @click="mainTab = 'discovery'" :class="{ 'border-b-2 border-blue-500 text-blue-600': mainTab === 'discovery' }" class="py-2 px-4 text-center font-medium hover:text-blue-500 focus:outline-none">
+                    Site Discovery
+                </button>
+            </nav>
         </div>
+
+        <!-- Analysis Tab Content -->
+        <div v-show="mainTab === 'analysis'">
+            <!-- Direct Analysis -->
+            <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg mb-4">
+                <h2 class="text-xl sm:text-2xl font-bold mb-4">Direct Analysis</h2>
+                <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                    <input v-model="directUrl" type="text" placeholder="https://example.com" class="flex-grow p-2 border rounded-md text-sm sm:text-base">
+                    <select v-model="runner" class="p-2 border rounded-md text-sm sm:text-base">
+                        <option value="htmlcs">htmlcs</option>
+                        <option value="axe">axe</option>
+                    </select>
+                    <button @click="analyzeUrl" :disabled="directAnalyzing" class="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 disabled:opacity-50 text-sm sm:text-base whitespace-nowrap">Analyze</button>
+                </div>
+            </div>
 
         <!-- Enqueue URL -->
         <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg mb-4">
@@ -34,7 +48,7 @@
                     <option value="htmlcs">htmlcs</option>
                     <option value="axe">axe</option>
                 </select>
-                <button @click="enqueue" class="bg-green-500 text-white p-2 rounded-md hover:bg-green-600 text-sm sm:text-base whitespace-nowrap">Enqueue</button>
+                <button @click="enqueueSingleUrl" class="bg-green-500 text-white p-2 rounded-md hover:bg-green-600 text-sm sm:text-base whitespace-nowrap">Enqueue</button>
             </div>
         </div>
 
@@ -128,6 +142,59 @@
                         </tr>
                     </tbody>
                 </table>
+            </div>
+        </div>
+
+        </div>
+
+        <!-- Site Discovery Tab Content -->
+        <div v-show="mainTab === 'discovery'">
+            <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg mb-4">
+                <h2 class="text-xl sm:text-2xl font-bold mb-4">Site Discovery</h2>
+                <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-4">
+                    <input v-model="discoveryUrl" type="text" placeholder="https://example.com" class="flex-grow p-2 border rounded-md text-sm sm:text-base">
+                    <button @click="discoverSite" :disabled="discovering" class="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 disabled:opacity-50 text-sm sm:text-base whitespace-nowrap">Explore</button>
+                </div>
+
+                <div v-if="discovering" class="flex items-center text-blue-600 mb-4">
+                    <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
+                    <span class="ml-2 text-sm sm:text-base">Discovering...</span>
+                </div>
+
+                <div v-if="discoveryResults.length > 0">
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <button @click="selectAll" class="bg-gray-200 text-gray-700 px-3 py-1 rounded-md text-sm">Select/Deselect All</button>
+                        </div>
+                        <button @click="enqueueSelected" class="bg-green-500 text-white p-2 rounded-md hover:bg-green-600 text-sm sm:text-base">Enqueue Selected</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left table-auto min-w-full">
+                            <thead>
+                                <tr class="bg-gray-50">
+                                    <th class="px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700"><input type="checkbox" @change="selectAll" v-model="isAllSelected"></th>
+                                    <th class="px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700">URL</th>
+                                    <th class="px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700">Category</th>
+                                    <th class="px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(item, index) in discoveryResults" :key="index" class="border-t hover:bg-gray-50">
+                                    <td class="px-2 sm:px-4 py-2"><input type="checkbox" v-model="item.selected" :disabled="!isStatusOk(item.status)"></td>
+                                    <td class="px-2 sm:px-4 py-2 text-xs sm:text-sm truncate" :title="item.url">{{ item.url }}</td>
+                                    <td class="px-2 sm:px-4 py-2 text-xs sm:text-sm">{{ item.category }}</td>
+                                    <td class="px-2 sm:px-4 py-2 text-xs sm:text-sm">{{ item.status }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div v-if="discoveryError" class="text-red-500 mt-4">
+                    {{ discoveryError }}
+                </div>
             </div>
         </div>
 
@@ -236,6 +303,7 @@
         new Vue({
             el: '#app',
             data: {
+                mainTab: 'analysis', // 'analysis' or 'discovery'
                 directUrl: '',
                 runner: 'htmlcs',
                 enqueueUrl: '',
@@ -247,6 +315,11 @@
                 pollTimer: null,
                 statusFilter: '',
                 urlFilter: '',
+                discoveryUrl: '',
+                discovering: false,
+                discoveryResults: [],
+                discoveryError: '',
+                isAllSelected: false,
             },
             computed: {
                 filteredQueue() {
@@ -272,6 +345,53 @@
                 }
             },
             methods: {
+                async discoverSite() {
+                    if (!this.discoveryUrl) return;
+                    this.discovering = true;
+                    this.discoveryResults = [];
+                    this.discoveryError = '';
+                    try {
+                        const normalizedUrl = this.normalizeUrl(this.discoveryUrl);
+                        const response = await fetch('/api/discover', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ url: normalizedUrl }),
+                        });
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.error || 'Failed to discover site');
+                        }
+                        const results = await response.json();
+                        this.discoveryResults = results.map(item => ({ ...item, selected: this.isStatusOk(item.status) }));
+                    } catch (error) {
+                        this.discoveryError = error.message;
+                    } finally {
+                        this.discovering = false;
+                    }
+                },
+                isStatusOk(status) {
+                    return status.startsWith('200');
+                },
+                selectAll() {
+                    this.isAllSelected = !this.isAllSelected;
+                    this.discoveryResults.forEach(item => {
+                        if (this.isStatusOk(item.status)) {
+                            item.selected = this.isAllSelected;
+                        }
+                    });
+                },
+                async enqueueSelected() {
+                    const selectedUrls = this.discoveryResults
+                        .filter(item => item.selected)
+                        .map(item => item.url);
+
+                    if (selectedUrls.length === 0) return;
+
+                    for (const url of selectedUrls) {
+                        await this.enqueueUrl(url, 'htmlcs');
+                    }
+                    this.getQueue();
+                },
                 normalizeUrl(url) {
                     if (!url) return url;
                     // Check if URL already has a protocol
@@ -307,19 +427,22 @@
                         this.directAnalyzing = false;
                     }
                 },
-                async enqueue() {
+                async enqueueSingleUrl() {
                     if (!this.enqueueUrl) return;
+                    await this.enqueue(this.enqueueUrl, this.enqueueRunner);
+                    this.enqueueUrl = '';
+                    this.getQueue();
+                },
+                async enqueue(url, runner) {
                     try {
-                        const normalizedUrl = this.normalizeUrl(this.enqueueUrl);
+                        const normalizedUrl = this.normalizeUrl(url);
                         const response = await fetch('/api/queue', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ url: normalizedUrl, runner: this.enqueueRunner }),
+                            body: JSON.stringify({ url: normalizedUrl, runner: runner }),
                         });
                         const newItem = await response.json();
                         this.queue.push(newItem);
-                        this.enqueueUrl = '';
-                        this.getQueue();
                     } catch (error) {
                         console.error('Error enqueuing URL:', error);
                     }
