@@ -21,6 +21,7 @@ FROM timbru31/node-chrome:20-slim
 RUN apt-get update && apt-get install -y libglib2.0-dev
 # Install pa11y globally
 RUN npm install -g pa11y
+COPY ./_devops/pa11y.json /pa11y.json
 
 # Ensure pa11y/puppeteer can find Chrome
 ENV CHROME_BIN=/usr/bin/google-chrome \

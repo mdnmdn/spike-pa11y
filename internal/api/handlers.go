@@ -37,7 +37,8 @@ func (h *Handlers) AnalyzeURL(c *gin.Context) {
 
 // QueueURLRequest represents the request body for the /queue endpoint.
 type QueueURLRequest struct {
-	URL string `json:"url" binding:"required"`
+	URL    string `json:"url" binding:"required"`
+	Runner string `json:"runner"`
 }
 
 // QueueURL adds a URL to the analysis queue.
@@ -48,7 +49,7 @@ func (h *Handlers) QueueURL(c *gin.Context) {
 		return
 	}
 
-	analysis := h.service.Create(req.URL, "")
+	analysis := h.service.Create(req.URL, req.Runner)
 	c.JSON(http.StatusAccepted, analysis)
 }
 

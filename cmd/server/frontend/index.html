@@ -9,79 +9,131 @@
 </head>
 <body class="bg-gray-100 text-gray-800">
 
-    <div id="app" class="container mx-auto p-4">
-        <h1 class="text-3xl font-bold mb-4">pa11y-go-wrapper</h1>
+    <div id="app" class="container mx-auto p-2 sm:p-4">
+        <h1 class="text-2xl sm:text-3xl font-bold mb-4">pa11y-go-wrapper</h1>
 
         <!-- Direct Analysis -->
-        <div class="bg-white p-6 rounded-lg shadow-lg mb-4">
-            <h2 class="text-2xl font-bold mb-4">Direct Analysis</h2>
-            <div class="flex space-x-2">
-                <input v-model="directUrl" type="text" placeholder="https://example.com" class="flex-grow p-2 border rounded-md">
-                <select v-model="runner" class="p-2 border rounded-md">
+        <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg mb-4">
+            <h2 class="text-xl sm:text-2xl font-bold mb-4">Direct Analysis</h2>
+            <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                <input v-model="directUrl" type="text" placeholder="https://example.com" class="flex-grow p-2 border rounded-md text-sm sm:text-base">
+                <select v-model="runner" class="p-2 border rounded-md text-sm sm:text-base">
                     <option value="htmlcs">htmlcs</option>
                     <option value="axe">axe</option>
                 </select>
-                <button @click="analyzeUrl" :disabled="directAnalyzing" class="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 disabled:opacity-50">Analyze</button>
+                <button @click="analyzeUrl" :disabled="directAnalyzing" class="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 disabled:opacity-50 text-sm sm:text-base whitespace-nowrap">Analyze</button>
             </div>
         </div>
 
         <!-- Enqueue URL -->
-        <div class="bg-white p-6 rounded-lg shadow-lg mb-4">
-            <h2 class="text-2xl font-bold mb-4">Enqueue URL</h2>
-            <div class="flex space-x-2">
-                <input v-model="enqueueUrl" type="text" placeholder="https://example.com" class="flex-grow p-2 border rounded-md">
-                <button @click="enqueue" class="bg-green-500 text-white p-2 rounded-md hover:bg-green-600">Enqueue</button>
+        <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg mb-4">
+            <h2 class="text-xl sm:text-2xl font-bold mb-4">Enqueue URL</h2>
+            <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                <input v-model="enqueueUrl" type="text" placeholder="https://example.com" class="flex-grow p-2 border rounded-md text-sm sm:text-base">
+                <select v-model="enqueueRunner" class="p-2 border rounded-md text-sm sm:text-base">
+                    <option value="htmlcs">htmlcs</option>
+                    <option value="axe">axe</option>
+                </select>
+                <button @click="enqueue" class="bg-green-500 text-white p-2 rounded-md hover:bg-green-600 text-sm sm:text-base whitespace-nowrap">Enqueue</button>
             </div>
         </div>
 
         <!-- Queue -->
-        <div class="bg-white p-6 rounded-lg shadow-lg mb-4">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold">Queue</h2>
-                <button @click="getQueue" class="bg-gray-500 text-white p-2 rounded-md hover:bg-gray-600">Refresh</button>
+        <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg mb-4">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 space-y-2 sm:space-y-0">
+                <h2 class="text-xl sm:text-2xl font-bold">Queue</h2>
+                <button @click="getQueue" class="bg-gray-500 text-white p-2 rounded-md hover:bg-gray-600 text-sm sm:text-base">Refresh</button>
             </div>
-            <table class="w-full text-left table-auto">
-                <thead>
-                    <tr>
-                        <th class="px-4 py-2">ID</th>
-                        <th class="px-4 py-2">URL</th>
-                        <th class="px-4 py-2">Status</th>
-                        <th class="px-4 py-2">Duration</th>
-                        <th class="px-4 py-2">Size</th>
-                        <th class="px-4 py-2">Created At</th>
-                        <th class="px-4 py-2">Actions</th>
-                        <th class="px-4 py-2">Reports</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="item in queue" :key="item.id" class="border-t">
-                        <td class="px-4 py-2">{{ item.id }}</td>
-                        <td class="px-4 py-2">{{ item.url }}</td>
-                        <td class="px-4 py-2">
-                            <span :class="statusBadgeClass(item.status)" class="px-2 py-1 rounded text-xs font-semibold">
-                                {{ item.status }}
-                            </span>
-                        </td>
-                        <td class="px-4 py-2">{{ item.durationMs ? formatDuration(item.durationMs) : '-' }}</td>
-                        <td class="px-4 py-2">{{ item.sizeBytes ? formatBytes(item.sizeBytes) : '-' }}</td>
-                        <td class="px-4 py-2">{{ new Date(item.createdAt).toLocaleString() }}</td>
-                        <td class="px-4 py-2">
-                            <button @click="getQueueItem(item.id)" class="bg-blue-500 text-white p-1 rounded-md hover:bg-blue-600">View</button>
-                        </td>
-                        <td class="px-4 py-2">
-                            <div v-if="item.status === 'completed'">
-                                <a :href="'/api/completed/html?id=' + item.id" target="_blank" class="bg-blue-500 text-white p-1 rounded-md hover:bg-blue-600">HTML</a>
-                                <a :href="'/api/completed/pdf?id=' + item.id" target="_blank" class="bg-red-500 text-white p-1 rounded-md hover:bg-red-600">PDF</a>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            
+            <!-- Filters -->
+            <div class="mb-4 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+                <div class="flex-1">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Status:</label>
+                    <select v-model="statusFilter" class="w-full p-2 border rounded-md">
+                        <option value="">All Statuses</option>
+                        <option value="pending">Pending</option>
+                        <option value="processing">Processing</option>
+                        <option value="completed">Completed</option>
+                        <option value="failed">Failed</option>
+                    </select>
+                </div>
+                <div class="flex-1">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Filter by URL:</label>
+                    <input v-model="urlFilter" type="text" placeholder="Filter by URL..." class="w-full p-2 border rounded-md">
+                </div>
+            </div>
+            
+            <!-- Responsive Table Container -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left table-auto min-w-full">
+                    <thead>
+                        <tr class="bg-gray-50">
+                            <th class="px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700">URL</th>
+                            <th class="px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 hidden sm:table-cell">Runner</th>
+                            <th class="px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700">Status</th>
+                            <th class="px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 hidden md:table-cell">Duration</th>
+                            <th class="px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 hidden lg:table-cell">Size</th>
+                            <th class="px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 hidden md:table-cell">Created At</th>
+                            <th class="px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700">Actions</th>
+                            <th class="px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 hidden sm:table-cell">Reports</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="item in filteredQueue" :key="item.id" class="border-t hover:bg-gray-50">
+                            <td class="px-2 sm:px-4 py-2">
+                                <div class="max-w-xs truncate" :title="item.url">
+                                    <span class="text-xs sm:text-sm">{{ item.url }}</span>
+                                </div>
+                                <!-- Mobile-only info -->
+                                <div class="sm:hidden text-xs text-gray-500 mt-1">
+                                    <span class="inline-block mr-2">{{ item.runner || 'htmlcs' }}</span>
+                                    <span v-if="item.durationMs" class="inline-block mr-2">{{ formatDuration(item.durationMs) }}</span>
+                                    <span>{{ new Date(item.createdAt).toLocaleDateString() }}</span>
+                                </div>
+                            </td>
+                            <td class="px-2 sm:px-4 py-2 text-xs sm:text-sm hidden sm:table-cell">{{ item.runner || 'htmlcs' }}</td>
+                            <td class="px-2 sm:px-4 py-2">
+                                <span :class="statusBadgeClass(item.status)" class="px-1 sm:px-2 py-1 rounded text-xs font-semibold">
+                                    {{ item.status }}
+                                </span>
+                            </td>
+                            <td class="px-2 sm:px-4 py-2 text-xs sm:text-sm hidden md:table-cell">{{ item.durationMs ? formatDuration(item.durationMs) : '-' }}</td>
+                            <td class="px-2 sm:px-4 py-2 text-xs sm:text-sm hidden lg:table-cell">{{ item.sizeBytes ? formatBytes(item.sizeBytes) : '-' }}</td>
+                            <td class="px-2 sm:px-4 py-2 text-xs sm:text-sm hidden md:table-cell">{{ new Date(item.createdAt).toLocaleString() }}</td>
+                            <td class="px-2 sm:px-4 py-2">
+                                <button @click="getQueueItem(item.id)" class="bg-blue-500 text-white px-2 py-1 rounded-md hover:bg-blue-600 text-xs sm:text-sm">
+                                    <span class="hidden sm:inline">View</span>
+                                    <span class="sm:hidden">👁</span>
+                                </button>
+                            </td>
+                            <td class="px-2 sm:px-4 py-2 hidden sm:table-cell">
+                                <div v-if="item.status === 'completed'" class="space-x-1">
+                                    <a :href="'/api/completed/html?id=' + item.id" target="_blank" class="bg-blue-500 text-white px-1 sm:px-2 py-1 rounded-md hover:bg-blue-600 text-xs">
+                                        HTML
+                                    </a>
+                                    <a :href="'/api/completed/pdf?id=' + item.id" target="_blank" class="bg-red-500 text-white px-1 sm:px-2 py-1 rounded-md hover:bg-red-600 text-xs">
+                                        PDF
+                                    </a>
+                                </div>
+                                <!-- Mobile reports shown in action column -->
+                                <div v-if="item.status === 'completed'" class="sm:hidden mt-1 space-x-1">
+                                    <a :href="'/api/completed/html?id=' + item.id" target="_blank" class="bg-blue-500 text-white px-1 py-1 rounded text-xs">
+                                        📄
+                                    </a>
+                                    <a :href="'/api/completed/pdf?id=' + item.id" target="_blank" class="bg-red-500 text-white px-1 py-1 rounded text-xs">
+                                        📋
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <!-- Result -->
-        <div v-if="result" class="bg-white p-6 rounded-lg shadow-lg">
-            <h2 class="text-2xl font-bold mb-4">Analysis Result</h2>
+        <div v-if="result" class="bg-white p-4 sm:p-6 rounded-lg shadow-lg">
+            <h2 class="text-xl sm:text-2xl font-bold mb-4">Analysis Result</h2>
 
             <!-- Loader for direct analyze -->
             <div v-if="directAnalyzing && (result.status === 'pending' || result.status === 'processing')" class="flex items-center text-blue-600 mb-4">
@@ -89,14 +141,14 @@
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
                 </svg>
-                <span class="ml-2">Analyzing... ({{ result.status }})</span>
+                <span class="ml-2 text-sm sm:text-base">Analyzing... ({{ result.status }})</span>
             </div>
 
             <!-- Tabs -->
             <div class="border-b mb-4">
-                <nav class="flex space-x-4">
-                    <button @click="activeTab = 'results'" :class="activeTab === 'results' ? 'border-b-2 border-blue-600 text-blue-600 pb-2' : 'text-gray-600 pb-2'" class="px-2">Results</button>
-                    <button @click="activeTab = 'raw'" :class="activeTab === 'raw' ? 'border-b-2 border-blue-600 text-blue-600 pb-2' : 'text-gray-600 pb-2'" class="px-2">Raw</button>
+                <nav class="flex space-x-2 sm:space-x-4">
+                    <button @click="activeTab = 'results'" :class="activeTab === 'results' ? 'border-b-2 border-blue-600 text-blue-600 pb-2' : 'text-gray-600 pb-2'" class="px-1 sm:px-2 text-sm sm:text-base">Results</button>
+                    <button @click="activeTab = 'raw'" :class="activeTab === 'raw' ? 'border-b-2 border-blue-600 text-blue-600 pb-2' : 'text-gray-600 pb-2'" class="px-1 sm:px-2 text-sm sm:text-base">Raw</button>
                 </nav>
             </div>
 
@@ -104,47 +156,60 @@
             <div v-show="activeTab === 'results'">
                 <!-- Error message display when failed -->
                 <div v-if="result.status === 'failed' && result.errorMessage" class="mb-4">
-                    <h3 class="text-xl font-bold mb-2 text-red-700">Error</h3>
-                    <pre class="bg-red-50 border border-red-200 text-red-800 p-3 rounded overflow-x-auto whitespace-pre-wrap">{{ result.errorMessage }}</pre>
+                    <h3 class="text-lg sm:text-xl font-bold mb-2 text-red-700">Error</h3>
+                    <pre class="bg-red-50 border border-red-200 text-red-800 p-3 rounded overflow-x-auto whitespace-pre-wrap text-xs sm:text-sm">{{ result.errorMessage }}</pre>
                 </div>
                 <!-- Metadata -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div><span class="font-semibold">ID:</span> {{ result.id }}</div>
-                    <div><span class="font-semibold">URL:</span> {{ result.url }}</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4 mb-4 text-sm sm:text-base">
+                    <div class="hidden"><span class="font-semibold">ID:</span> {{ result.id }}</div>
+                    <div><span class="font-semibold">URL:</span> <span class="break-all">{{ result.url }}</span></div>
                     <div><span class="font-semibold">Runner:</span> {{ result.runner || 'htmlcs' }}</div>
                     <div><span class="font-semibold">Status:</span> <span :class="statusBadgeClass(result.status)" class="px-2 py-1 rounded text-xs font-semibold">{{ result.status }}</span></div>
                     <div><span class="font-semibold">Duration:</span> {{ result.durationMs ? formatDuration(result.durationMs) : '-' }}</div>
                     <div><span class="font-semibold">Size:</span> {{ result.sizeBytes ? formatBytes(result.sizeBytes) : '-' }}</div>
-                    <div><span class="font-semibold">Created At:</span> {{ result.createdAt ? new Date(result.createdAt).toLocaleString() : '-' }}</div>
-                    <div><span class="font-semibold">Updated At:</span> {{ result.updatedAt ? new Date(result.updatedAt).toLocaleString() : '-' }}</div>
+                    <div><span class="font-semibold">Created At:</span> <span class="text-xs sm:text-sm">{{ result.createdAt ? new Date(result.createdAt).toLocaleString() : '-' }}</span></div>
+                    <div><span class="font-semibold">Updated At:</span> <span class="text-xs sm:text-sm">{{ result.updatedAt ? new Date(result.updatedAt).toLocaleString() : '-' }}</span></div>
                 </div>
 
                 <!-- Issues Table -->
                 <div>
-                    <h3 class="text-xl font-bold mb-2">Issues</h3>
-                    <div v-if="!result.result || result.result.length === 0" class="text-green-700">No issues found.</div>
+                    <h3 class="text-lg sm:text-xl font-bold mb-2">Issues</h3>
+                    <div v-if="!result.result || result.result.length === 0" class="text-green-700 text-sm sm:text-base">No issues found.</div>
                     <div v-else class="overflow-x-auto">
-                        <table class="w-full text-left table-auto">
+                        <table class="w-full text-left table-auto min-w-full">
                             <thead>
                                 <tr class="bg-gray-100">
-                                    <th class="px-4 py-2">Code</th>
-                                    <th class="px-4 py-2">Message</th>
-                                    <th class="px-4 py-2">Type</th>
-                                    <th class="px-4 py-2">Type Code</th>
-                                    <th class="px-4 py-2">Selector</th>
-                                    <th class="px-4 py-2">Context</th>
-                                    <th class="px-4 py-2">Runner</th>
+                                    <th class="px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium">Code</th>
+                                    <th class="px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium">Message</th>
+                                    <th class="px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium hidden md:table-cell">Type</th>
+                                    <th class="px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium hidden lg:table-cell">Type Code</th>
+                                    <th class="px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium hidden sm:table-cell">Selector</th>
+                                    <th class="px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium hidden md:table-cell">Context</th>
+                                    <th class="px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium hidden lg:table-cell">Runner</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr v-for="(issue, idx) in result.result" :key="idx" class="border-t">
-                                    <td class="px-4 py-2">{{ issue.code }}</td>
-                                    <td class="px-4 py-2">{{ issue.message }}</td>
-                                    <td class="px-4 py-2">{{ issue.type }}</td>
-                                    <td class="px-4 py-2">{{ issue.typeCode }}</td>
-                                    <td class="px-4 py-2">{{ issue.selector }}</td>
-                                    <td class="px-4 py-2 truncate max-w-xs" :title="issue.context">{{ issue.context }}</td>
-                                    <td class="px-4 py-2">{{ issue.runner }}</td>
+                                    <td class="px-2 sm:px-4 py-2 text-xs sm:text-sm">
+                                        <div class="max-w-xs truncate" :title="issue.code">{{ issue.code }}</div>
+                                    </td>
+                                    <td class="px-2 sm:px-4 py-2 text-xs sm:text-sm">
+                                        <div class="max-w-xs sm:max-w-sm" :title="issue.message">{{ issue.message }}</div>
+                                        <!-- Mobile-only additional info -->
+                                        <div class="md:hidden text-xs text-gray-500 mt-1">
+                                            <span v-if="issue.type" class="inline-block mr-2">{{ issue.type }}</span>
+                                            <span v-if="issue.selector" class="inline-block">{{ issue.selector }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-2 sm:px-4 py-2 text-xs sm:text-sm hidden md:table-cell">{{ issue.type }}</td>
+                                    <td class="px-2 sm:px-4 py-2 text-xs sm:text-sm hidden lg:table-cell">{{ issue.typeCode }}</td>
+                                    <td class="px-2 sm:px-4 py-2 text-xs sm:text-sm hidden sm:table-cell">
+                                        <div class="max-w-xs truncate" :title="issue.selector">{{ issue.selector }}</div>
+                                    </td>
+                                    <td class="px-2 sm:px-4 py-2 text-xs sm:text-sm hidden md:table-cell">
+                                        <div class="max-w-xs truncate" :title="issue.context">{{ issue.context }}</div>
+                                    </td>
+                                    <td class="px-2 sm:px-4 py-2 text-xs sm:text-sm hidden lg:table-cell">{{ issue.runner }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -154,13 +219,15 @@
 
             <!-- Raw Tab -->
             <div v-show="activeTab === 'raw'">
-                <pre class="bg-gray-200 p-4 rounded-md overflow-x-auto"><code>{{ JSON.stringify(result, null, 2) }}</code></pre>
+                <pre class="bg-gray-200 p-2 sm:p-4 rounded-md overflow-x-auto text-xs sm:text-sm"><code>{{ JSON.stringify(result, null, 2) }}</code></pre>
             </div>
 
             <div v-if="result.status === 'completed'" class="mt-4">
-                <h3 class="text-xl font-bold mb-2">Reports</h3>
-                <a :href="'/api/completed/html?id=' + result.id" target="_blank" class="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 mr-2">View HTML Report</a>
-                <a :href="'/api/completed/pdf?id=' + result.id" target="_blank" class="bg-red-500 text-white p-2 rounded-md hover:bg-red-600">View PDF Report</a>
+                <h3 class="text-lg sm:text-xl font-bold mb-2">Reports</h3>
+                <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                    <a :href="'/api/completed/html?id=' + result.id" target="_blank" class="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 text-center text-sm sm:text-base">View HTML Report</a>
+                    <a :href="'/api/completed/pdf?id=' + result.id" target="_blank" class="bg-red-500 text-white p-2 rounded-md hover:bg-red-600 text-center text-sm sm:text-base">View PDF Report</a>
+                </div>
             </div>
         </div>
     </div>
@@ -172,13 +239,48 @@
                 directUrl: '',
                 runner: 'htmlcs',
                 enqueueUrl: '',
+                enqueueRunner: 'htmlcs',
                 queue: [],
                 result: null,
                 directAnalyzing: false,
                 activeTab: 'results',
                 pollTimer: null,
+                statusFilter: '',
+                urlFilter: '',
+            },
+            computed: {
+                filteredQueue() {
+                    let filtered = [...this.queue];
+                    
+                    // Sort by createdAt in descending order (most recent first)
+                    filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                    
+                    // Filter by status
+                    if (this.statusFilter) {
+                        filtered = filtered.filter(item => item.status === this.statusFilter);
+                    }
+                    
+                    // Filter by URL
+                    if (this.urlFilter) {
+                        const urlFilterLower = this.urlFilter.toLowerCase();
+                        filtered = filtered.filter(item => 
+                            item.url.toLowerCase().includes(urlFilterLower)
+                        );
+                    }
+                    
+                    return filtered;
+                }
             },
             methods: {
+                normalizeUrl(url) {
+                    if (!url) return url;
+                    // Check if URL already has a protocol
+                    if (!/^https?:\/\//i.test(url)) {
+                        // Add https:// prefix for raw domain names
+                        return 'https://' + url;
+                    }
+                    return url;
+                },
                 async analyzeUrl() {
                     if (!this.directUrl) return;
                     try {
@@ -186,10 +288,11 @@
                         this.stopPolling();
                         this.directAnalyzing = true;
                         this.activeTab = 'results';
+                        const normalizedUrl = this.normalizeUrl(this.directUrl);
                         const response = await fetch('/api/analyze', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ url: this.directUrl, runner: this.runner }),
+                            body: JSON.stringify({ url: normalizedUrl, runner: this.runner }),
                         });
                         const analysis = await response.json();
                         this.result = analysis;
@@ -207,10 +310,11 @@
                 async enqueue() {
                     if (!this.enqueueUrl) return;
                     try {
+                        const normalizedUrl = this.normalizeUrl(this.enqueueUrl);
                         const response = await fetch('/api/queue', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ url: this.enqueueUrl }),
+                            body: JSON.stringify({ url: normalizedUrl, runner: this.enqueueRunner }),
                         });
                         const newItem = await response.json();
                         this.queue.push(newItem);
